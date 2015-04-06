@@ -3,6 +3,15 @@
 
 from readDrill import *
 from bilinear import *
+import sys
+from PyQt5 import QtCore, QtGui, QtWidgets
+from mainwindow import Ui_MainWindow
+
+
+class AutodrillMainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self):
+        QtWidgets.QMainWindow.__init__(self)
+        self.setupUi(self)
 
 
 # assign holes to drills from given toolbox
@@ -66,4 +75,9 @@ if __name__ == '__main__':
 	p = (0.5, 0.5)
 
 	print(T.transform(p))
+
+	app = QtWidgets.QApplication(sys.argv)
+	ui = AutodrillMainWindow()
+	ui.show()
+	sys.exit(app.exec_())
 
