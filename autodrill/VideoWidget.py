@@ -103,7 +103,11 @@ class VideoWidget(QWidget):
 		else:
 			cv.Flip(frame, self._frame, 0)
 
-		dst_frame = cv.CreateImage(cv.GetSize(self._frame), self._frame.depth, self._frame.nChannels)
+		#dst_frame = cv.CreateImage(cv.GetSize(self._frame), self._frame.depth, self._frame.nChannels)
+
+		subpixel_frame = cv.CreateImage((self._frame.width*8, self._frame.height*8), cv.IPL_DEPTH_8U, frame.nChannels)
+		cv.Resize(self._frame, subpixel_frame)
+		self._frame = subpixel_frame
 
 		width_height_ratio = float(self.width())/float(self.height()) #()/
 
