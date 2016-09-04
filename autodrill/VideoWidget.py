@@ -83,6 +83,7 @@ class VideoWidget(QWidget):
 		self.is_connected = True
 		self.setMinimumSize(300,300)
 		self._frame = None
+		self._tmp_frame = None
 		self._image = self._build_image(frame)
 
 		self._timer.timeout.connect(self.queryFrame)
@@ -96,18 +97,18 @@ class VideoWidget(QWidget):
 	def _build_image(self, frame):
 		# TODO: don't user member variable self._frame
 		if not self._frame:
-			self._frame = cv.CreateImage((frame.width, frame.height), cv.IPL_DEPTH_8U, frame.nChannels)
+			self._frame = cv.CreateImage((frame.width*4, frame.height*4), cv.IPL_DEPTH_8U, frame.nChannels)
+
+		if not self._tmp_frame:
+			self._tmp_frame = cv.CreateImage((frame.width, frame.height), cv.IPL_DEPTH_8U, frame.nChannels)
 
 		if frame.origin == cv.IPL_ORIGIN_TL:
-			cv.Copy(frame, self._frame)
+			cv.Copy(frame, self._tmp_frame)
 		else:
-			cv.Flip(frame, self._frame, 0)
+			cv.Flip(frame, self._tmp_frame, 0)
 
+		cv.Resize(self._tmp_frame, self._frame)
 		#dst_frame = cv.CreateImage(cv.GetSize(self._frame), self._frame.depth, self._frame.nChannels)
-
-		subpixel_frame = cv.CreateImage((self._frame.width*8, self._frame.height*8), cv.IPL_DEPTH_8U, frame.nChannels)
-		cv.Resize(self._frame, subpixel_frame)
-		self._frame = subpixel_frame
 
 		width_height_ratio = float(self.width())/float(self.height()) #()/
 
