@@ -84,6 +84,7 @@ class VideoWidget(QWidget):
 		self.setMinimumSize(300,300)
 		self._frame = None
 		self._tmp_frame = None
+		self.subpixel_rendering = True
 		self._image = self._build_image(frame)
 
 		self._timer.timeout.connect(self.queryFrame)
@@ -92,23 +93,40 @@ class VideoWidget(QWidget):
 
 	def setZoom(self, zoom):
 		self.zoom=zoom
+		self.setSubpixelRendering(zoom > 8)
+
+
+	def setSubpixelRendering(self, spx_rendering):
+		if self.subpixel_rendering != spx_rendering:
+			logger.debug("set subpixel rendering: {0}".format(spx_rendering))
+			self.subpixel_rendering = spx_rendering
+			self._frame = None
 
 
 	def _build_image(self, frame):
 		# TODO: don't user member variable self._frame
 		if not self._frame:
-			self._frame = cv.CreateImage((frame.width*4, frame.height*4), cv.IPL_DEPTH_8U, frame.nChannels)
+			if self.subpixel_rendering:
+				self._frame = cv.CreateImage((frame.width*4, frame.height*4), cv.IPL_DEPTH_8U, frame.nChannels)
+			else:
+				self._frame = cv.CreateImage((frame.width, frame.height), cv.IPL_DEPTH_8U, frame.nChannels)
 
 		if not self._tmp_frame:
 			self._tmp_frame = cv.CreateImage((frame.width, frame.height), cv.IPL_DEPTH_8U, frame.nChannels)
 
 		if frame.origin == cv.IPL_ORIGIN_TL:
-			cv.Copy(frame, self._tmp_frame)
+			if self.subpixel_rendering:
+				cv.Copy(frame, self._tmp_frame)
+			else:
+				cv.Copy(frame, self._frame)
 		else:
-			cv.Flip(frame, self._tmp_frame, 0)
+			if self.subpixel_rendering:
+				cv.Flip(frame, self._tmp_frame, 0)
+			else:
+				cv.Flip(frame, self._frame, 0)
 
-		cv.Resize(self._tmp_frame, self._frame)
-		#dst_frame = cv.CreateImage(cv.GetSize(self._frame), self._frame.depth, self._frame.nChannels)
+		if self.subpixel_rendering:
+			cv.Resize(self._tmp_frame, self._frame)
 
 		width_height_ratio = float(self.width())/float(self.height()) #()/
 
